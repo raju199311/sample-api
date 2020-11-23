@@ -1,0 +1,37 @@
+---
+version: '2.4'
+services:
+  reverse_proxy:
+    image: nginx:alpine
+    container_name: frontend-server
+    volumes:
+      - ./flask.conf:/etc/nginx/conf.d/custom-flask.conf
+    depends_on:
+      - sample-api
+    networks:
+      api-suite:
+        aliases:
+          - frontend-server
+    ports:
+      - 80:80
+    restart: on-failure
+  sample-api:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    image: sample-api:latest
+    container_name: sample-api
+    environment:
+      - FLASK_ENV=production
+    networks:
+      api-suite:
+        aliases:
+          - sample-api
+
+networks:
+  api-suite:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.10.0/28
+          gateway: 192.168.10.1
